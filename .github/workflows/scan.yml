@@ -1,0 +1,49 @@
+name: Crypto Signal Scan
+
+on:
+  schedule:
+    # هر ۵ دقیقه اجرا می‌شود. توجه: GitHub Actions تضمین نمی‌کند دقیقاً
+    # سر هر ۵ دقیقه اجرا شود؛ در بارهای بالا ممکن است چند دقیقه تأخیر داشته باشد.
+    - cron: "*/5 * * * *"
+  workflow_dispatch: {}  # امکان اجرای دستی از تب Actions
+
+concurrency:
+  group: crypto-signal-scan
+  cancel-in-progress: false  # اگر اجرای قبلی هنوز تمام نشده، صف بایست نه لغو
+
+permissions:
+  contents: write  # برای commit کردن state.json لازم است
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run one analysis cycle
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          DRY_RUN: "false"
+        run: python run_once.py
+
+      - name: Persist duplicate-filter state
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -f storage/state.json
+          git diff --cached --quiet || git commit -m "chore: update signal state [skip ci]"
+          git push

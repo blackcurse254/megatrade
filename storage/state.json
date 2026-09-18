@@ -1,0 +1,17 @@
+{
+  "BTCUSDT": {
+    "symbol": "BTCUSDT",
+    "signal": "WAIT",
+    "reason": "gemini_call_failed"
+  },
+  "ETHUSDT": {
+    "symbol": "ETHUSDT",
+    "signal": "WAIT",
+    "reason": "gemini_call_failed"
+  },
+  "SOLUSDT": {
+    "symbol": "SOLUSDT",
+    "signal": "WAIT",
+    "reason": "gemini_call_failed"
+  }
+}
